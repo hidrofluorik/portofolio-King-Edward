@@ -13,10 +13,10 @@ import javax.swing.JOptionPane;
 import javax.swing.plaf.OptionPaneUI;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-import javazoom.jl.player.Player;
 import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import javazoom.jl.player.Player;
 
 public class SongController {
     private songView view;

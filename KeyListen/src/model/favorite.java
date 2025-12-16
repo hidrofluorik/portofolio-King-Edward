@@ -6,18 +6,21 @@ package model;
 
 public class favorite {
     private String id_fav;
-    private String id_song;
+    private String title;
+    private String artist;
+    private String filePath;
     private String nickname;
 
-    public favorite() {}
-
-    public favorite(String id_fav, String id_song, String nickname) {
+    public favorite(String id_fav, String title, String artist, String filePath, String nickname) {
         this.id_fav = id_fav;
-        this.id_song = id_song;
+        this.title = title;
+        this.artist = artist;
+        this.filePath = filePath;
         this.nickname = nickname;
     }
-
-    
+    public favorite(){
+        
+    }    
     public String getId_fav() {
         return id_fav;
     }
@@ -26,14 +29,28 @@ public class favorite {
         this.id_fav = id_fav;
     }
 
-    
-
-    public String getId_song() {
-        return id_song;
+    public String getTitle() {
+        return title;
     }
 
-    public void setId_song(String id_song) {
-        this.id_song = id_song;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getArtist() {
+        return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public String getNickname() {
@@ -45,7 +62,8 @@ public class favorite {
     }
 
     
-
+    
+    
     
 }
 

@@ -1,100 +1,134 @@
 package controller;
 
 import dao.FavDao;
+import java.io.File;
+import java.io.FileInputStream;
 import model.favorite;
 import model.song;
 import view.favView;
-
+import javazoom.jl.player.Player;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
+import view.songView;
 
 public class FavoriteController {
-
     private favView view;
     private FavDao dao;
-    private DefaultTableModel tableModel;
-
+    private DefaultTableModel tabelmodel;
+    
     public FavoriteController(favView view) {
         this.view = view;
-        this.dao = new FavDao();
-        initTable();
-        setButtonListener();
+        dao = new FavDao();
+        inittablemodel();
+        tampildata();
+        settableclick();
+        setbutonlistener();
     }
-
-    private void initTable() {
-        tableModel = new DefaultTableModel(
-            new Object[]{"ID Favorite", "ID Song", "Nickname"}, 0
+    
+    private void inittablemodel(){
+        tabelmodel = new DefaultTableModel(
+                new Object[]{"ID favorite", "Title", "Artist", "FilePath", "nickname"},0);
+        view.getTabel_lagu().setModel(tabelmodel);
+    }
+    public void tampildata(){
+        clearform();
+        List<favorite> list = dao.getAll();
+        DefaultTableModel model = (DefaultTableModel) view.getTabel_lagu().getModel();
+        model.setRowCount(0);
+        for (favorite f: list) {
+            Object[] row = {
+                f.getId_fav(),
+                f.getTitle(),
+                f.getArtist(),
+                f.getFilePath(),
+                f.getNickname()
+            };
+            model.addRow(row);
+        }
+    }
+    public void settableclick(){
+        view.getTabel_lagu().getSelectionModel().addListSelectionListener(e ->{
+            int row = view.getTabel_lagu().getSelectedRow();
+            if (row != -1) {
+                view.getId_fav().setText(tabelmodel.getValueAt(row, 0).toString());
+                view.getTxtjudul().setText(tabelmodel.getValueAt(row, 1).toString());
+                view.getTxtartist().setText(tabelmodel.getValueAt(row, 2).toString());
+                view.getTxtfilepath().setText(tabelmodel.getValueAt(row, 3).toString());
+                view.getTxtuser().setText(tabelmodel.getValueAt(row, 4).toString());
+                
+            }
+        }
+        
         );
-        view.getTabel_fav().setModel(tableModel);
     }
-
-    // ================= TAMPIl FAVORIT =================
-    public void tampilFavoritByNickname() {
-        String nickname = view.getTxt_nickname().getText();
-
-        if (nickname.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Masukkan nickname dulu!");
-            return;
-        }
-
-        List<song> list = dao.getFavoriteSongsByNickname(nickname);
-        tableModel.setRowCount(0);
-
-        for (song s : list) {
-            tableModel.addRow(new Object[]{
-                s.getId_song(),
-                s.getTitle(),
-                s.getArtist(),
-                s.getFilePath(),
-                s.getDuration()
-            });
-        }
+    public void clearform(){
+        view.getId_fav().setText("");
+        view.getTxtjudul().setText("");
+        view.getTxtartist().setText("");
+        view.getTxtfilepath().setText("");
+        view.getTxtuser().setText("");
     }
-
-    // ================= ADD FAVORITE =================
-    public void simpandata() {
+    
+    public void simpandata(){
         favorite f = new favorite();
-        f.setId_fav(view.getTxtid_fav().getText());
-        f.setId_song(view.getTxtid_song().getText());
-        f.setNickname(view.getTxt_nickname().getText());
-
-        if (dao.insert(f)) {
-            JOptionPane.showMessageDialog(view, "Favorit ditambahkan");
-            tampilFavoritByNickname();
+        
+        f.setId_fav(view.getId_fav().getText());
+        f.setTitle(view.getTxtjudul().getText());
+        f.setArtist(view.getTxtartist().getText());
+        f.setFilePath(view.getTxtfilepath().getText());
+        f.setNickname(view.getId_fav().getText());
+        
+        if (dao.insert(f)){
+            JOptionPane.showMessageDialog(view, "Lagu Tersimpan");
+            tampildata();
             clearform();
-        } else {
-            JOptionPane.showMessageDialog(view, "Gagal menambahkan favorit");
+        }else{
+            JOptionPane.showMessageDialog(view, "Gagal Menyimpan Lagu");
         }
     }
+    
+    
 
-    // ================= DELETE FAVORITE =================
-    public void delete() {
-        int row = view.getTabel_fav().getSelectedRow();
+public void playLagu() {
+    try {
+        String path = view.getTxtfilepath().getText();
 
-        if (row == -1) {
-            JOptionPane.showMessageDialog(view, "Pilih data dulu!");
+        if (path == null || path.isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Pilih lagu dulu!");
             return;
         }
 
-        String idFav = view.getTxtid_fav().getText();
-
-        if (dao.delete(idFav)) {
-            JOptionPane.showMessageDialog(view, "Favorit dihapus");
-            tampilFavoritByNickname();
-            clearform();
-        } else {
-            JOptionPane.showMessageDialog(view, "Gagal menghapus favorit");
+        File file = new File(path);
+        if (!file.exists()) {
+            JOptionPane.showMessageDialog(
+                view,
+                "File lagu TIDAK ADA:\n" + path
+            );
+            return;
         }
-    }
 
-    private void clearform() {
-        view.getTxtid_fav().setText("");
-        view.getTxtid_song().setText("");
-    }
+        Player player = new Player(new FileInputStream(file));
 
-    private void setButtonListener() {
-        view.getBtn_addfav().addActionListener(e -> simpandata());
-        view.getBtnDelete().addActionListener(e -> delete());
+        new Thread(() -> {
+            try {
+                player.play();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(view, "Gagal memutar lagu");
+    }
+}
+
+
+
+    public void setbutonlistener(){
+        view.getBtn_addsong().addActionListener(e -> simpandata());
+        view.getBtn_play().addActionListener(e -> playLagu());
+        view.getBtn_refresh().addActionListener(e -> tampildata());
     }
 }
